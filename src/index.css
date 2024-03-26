@@ -3,6 +3,13 @@
 padding: 0;
 box-sizing: border-box;
 }
+
+/* styles.css */
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
@@ -15,7 +22,9 @@ code {
     monospace;
 }
 
-body {
+
+
+.main-container {
   background-color: #4a4a4a;
   display: flex;
   justify-content: center;
@@ -40,4 +49,21 @@ body {
 .g-btn > div > svg {
   width: 40px !important;
   height: 38px !important;
+}
+
+.navber_container {
+  background-color: #342df2;
+  color: #ffffff;
+  width: 100%;
+  height: 10vh;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px;
+}
+
+.navber_container  a {
+  text-decoration: none;
+  color: #ffffff;
+  margin: 0 5px;
 }

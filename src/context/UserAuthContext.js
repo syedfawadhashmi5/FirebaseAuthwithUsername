@@ -1,44 +1,63 @@
-import { useContext, createContext, useEffect, useState } from "react"
-
-import { AuthErrorCodes, createUserWithEmailAndPassword, onAuthStateChanged } from 'firebase/auth'
+import { useContext, createContext, useEffect, useState } from "react";
+import { AuthErrorCodes, createUserWithEmailAndPassword, onAuthStateChanged, signInWithEmailAndPassword,signOut } from 'firebase/auth';
 import { auth, db } from "../firebase.config";
-import { addDoc, collection, doc, setDoc } from "firebase/firestore";
-
+import { doc, setDoc,getDoc } from "firebase/firestore";
 
 const userContext = createContext();
 export const useAuth = () => { return useContext(userContext) }
 
-
 const UserAuthContext = ({ children }) => {
-  const [error, setError] = useState("")
-  const [currentuser, setuser] = useState()
-  useEffect(
-    () => {
-      onAuthStateChanged(auth, user => {
-        console.log(user)
-        if (user) {
-          setuser(user)
-          console.log("u are logging")
-        }
-        else {
-          // alert("u are logout")
-        }
-      })
-    }, [currentuser]
-  )
+  const [error, setError] = useState("");
+  const [currentuser, setCurrentUser] = useState(null); 
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, user => {
+      if (user) {
+        setCurrentUser(user);
+      }
+    });
+        return () => unsubscribe();
+  }, []);
+
+  const SignIn = async (email, password) => {
+    try {
+        await signInWithEmailAndPassword(auth, email, password);
+    } catch (error) {
+        handleError(error.code);
+    }
+};
+
+const handleError = (errorCode) => {
+  switch (errorCode) {
+      case AuthErrorCodes.INVALID_EMAIL:
+          setError('Invalid email address');
+          break;
+      case AuthErrorCodes.WRONG_PASSWORD:
+          setError('Invalid password');
+          break;
+      case AuthErrorCodes.USER_NOT_FOUND:
+          setError('User not found');
+          break;
+      default:
+          setError('An error occurred');
+          break;
+  }
+};
+
+
+
   const SignUp = async (email, password, FullName) => {
     setError("");
     createUserWithEmailAndPassword(auth, email, password).then(
       async (result) => {
-        console.log(result)
         try {
-          // const docRef = await addDoc(collection(db, "users"), {
-          //   FullName,
-          //   userId: `${result.user.uid}`
-          // });
+          const userData = {
+            Name: FullName,
+            Email: email
+          }
+
           const ref = doc(db, "userinfo", result.user.uid)
-          const docRef = await setDoc(ref, { FullName })
-          alert("Wellcome new User create successfully")
+          const docRef = await setDoc(ref, { userData })
+          alert("Welcome new user created successfully")
           console.log("Document written with ID: ", docRef.id);
         } catch (e) {
           console.error("Error adding document: ", e);
@@ -46,33 +65,89 @@ const UserAuthContext = ({ children }) => {
       }
     ).catch(err => {
       if (err.code === "auth/email-already-in-use") {
-
-        setInterval(() => {
-          setError("")
-        }, 5000)
-        setError("email already in use try another email")
+        setError("Email already in use. Try another email.");
+      } else if (err.code === AuthErrorCodes.WEAK_PASSWORD) {
+        setError("Password must be at least 6 characters long.");
+      } else {
+        setError(err.message);
       }
-      else if (err.code === AuthErrorCodes.WEAK_PASSWORD) {
-
-        setInterval(() => {
-          setError("")
-        }, 5000)
-        setError("Password Must be 6 charecter")
-      }
-
-      else {
-        setError(err.message)
-      }
-    })
+    });
   }
+
+
+  const getUserData = async (userId) => {
+    try {
+      const docRef = doc(db, "userinfo", userId);
+      const docSnap = await getDoc(docRef);
+  
+      if (docSnap.exists()) {
+        // Document data exists, return it
+        return docSnap.data().userData;
+      } else {
+        // Document doesn't exist
+        console.log("No such document!");
+        return null;
+      }
+    } catch (e) {
+      console.error("Error getting document: ", e);
+      return null;
+    }
+  };
+
+const handleLogin = (user) => {
+  if (user) {
+    // User is logged in, set userId in localStorage
+    localStorage.setItem('userId', user.uid);
+  } else {
+    // User is not logged in, clear userId from localStorage
+    localStorage.removeItem('userId');
+  }
+};
+
+
+handleLogin(currentuser);
+  const getuserId = localStorage.getItem('userId');
+  const userId = getuserId;
+  getUserData(userId).then(userData => {
+    if (userData) {
+      console.log("User data:", userData);
+      localStorage.setItem('name', userData.Name);
+    } else {
+      console.log("User data not found!");
+    }
+  });
+
+
+    const handleLogout = async () => {
+        try {
+            await signOut(auth);
+            localStorage.removeItem('userId');
+            localStorage.removeItem('name');
+        } catch (error) {
+            console.error('Error signing out:', error.message);
+        }
+    };
+
+
   const value = {
+    handleLogout,
+    SignIn,
     SignUp,
     error,
     currentuser
-  }
+  };
+
+
+
   return (
-    <userContext.Provider value={value}>{children}</userContext.Provider>
-  )
+    <userContext.Provider value={value}>
+      {children}
+    </userContext.Provider>
+  );
 }
 
-export default UserAuthContext
+export const doSignInWithEmailAndPassword = (email, password) => {
+  return signInWithEmailAndPassword(auth, email, password);
+};
+
+export default UserAuthContext;
