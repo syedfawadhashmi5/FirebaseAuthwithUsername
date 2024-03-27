@@ -110,7 +110,6 @@ handleLogin(currentuser);
   const userId = getuserId;
   getUserData(userId).then(userData => {
     if (userData) {
-      console.log("User data:", userData);
       localStorage.setItem('name', userData.Name);
     } else {
       console.log("User data not found!");
@@ -123,6 +122,8 @@ handleLogin(currentuser);
             await signOut(auth);
             localStorage.removeItem('userId');
             localStorage.removeItem('name');
+            localStorage.setItem('userId', false);
+            localStorage.setItem('name', false);
         } catch (error) {
             console.error('Error signing out:', error.message);
         }

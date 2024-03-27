@@ -5,6 +5,9 @@ import { useAuth } from '../context/UserAuthContext';
 const Header = () => {
     const navigate = useNavigate();
     const { handleLogout, currentuser } = useAuth();
+    const getusername = currentuser ? localStorage.getItem('name') : null;
+
+    console.log("currentuser", currentuser)
 
     const handleLoginClick = () => {
         navigate('/login');
@@ -13,29 +16,64 @@ const Header = () => {
     const handleSignupClick = () => {
         navigate('/signup');
     };
-    const getusername = currentuser ? localStorage.getItem('name') : null;
+
     const handleLogoutClick = () => {
         handleLogout();
         navigate('/login');
     };
+
     return (
-        <header>
-            <h1>Your Website</h1>
-            <div id="userOptions">
+        <header style={styles.header}>
+            <h1 style={styles.logo}>Your Website</h1>
+            <div id="userOptions" style={styles.userOptions}>
                 {currentuser ? (
                     <div>
-                        <span>Welcome, {getusername}</span>
-                        <button onClick={handleLogoutClick}>Sign Out</button>
+                        <span style={styles.welcome}>Welcome, {getusername}</span>
+                        <button style={styles.button} onClick={handleLogoutClick}>Sign Out</button>
                     </div>
                 ) : (
                     <div>
-                        <button onClick={handleLoginClick}>Login</button>
-                        <button onClick={handleSignupClick}>Sign Up</button>
+                        <button style={styles.button} onClick={handleLoginClick}>Login</button>
+                        <button style={styles.button} onClick={handleSignupClick}>Sign Up</button>
                     </div>
                 )}
             </div>
         </header>
     );
+};
+
+// Styles
+const styles = {
+    header: {
+        width: '100%',
+        height: '44px',
+        background: 'blue',
+        display: 'flex',
+        justifyContent: 'space-between',
+        padding: '0 22px',
+        alignItems: 'center',
+    },
+    logo: {
+        color: 'white',
+        margin: 0,
+    },
+    userOptions: {
+        display: 'flex',
+        alignItems: 'center',
+    },
+    welcome: {
+        color: 'white',
+        marginRight: '10px',
+    },
+    button: {
+        marginLeft: '10px',
+        padding: '8px 16px',
+        border: 'none',
+        borderRadius: '4px',
+        backgroundColor: 'white',
+        color: 'blue',
+        cursor: 'pointer',
+    },
 };
 
 export default Header;
