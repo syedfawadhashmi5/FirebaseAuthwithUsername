@@ -4,10 +4,10 @@ import { useAuth } from '../context/UserAuthContext';
 
 const Header = () => {
     const navigate = useNavigate();
-    const { handleLogout, currentuser } = useAuth();
+    const { handleLogout, currentuser, userName } = useAuth();
     const getusername = currentuser ? localStorage.getItem('name') : null;
 
-    console.log("currentuser", currentuser)
+    console.log("userName", userName.Name)
 
     const handleLoginClick = () => {
         navigate('/login');
@@ -28,7 +28,7 @@ const Header = () => {
             <div id="userOptions" style={styles.userOptions}>
                 {currentuser ? (
                     <div>
-                        <span style={styles.welcome}>Welcome, {getusername}</span>
+                        <span style={styles.welcome}>Welcome, {userName.Name}</span>
                         <button style={styles.button} onClick={handleLogoutClick}>Sign Out</button>
                     </div>
                 ) : (

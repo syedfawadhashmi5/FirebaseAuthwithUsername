@@ -8,7 +8,10 @@ export const useAuth = () => { return useContext(userContext) }
 
 const UserAuthContext = ({ children }) => {
   const [error, setError] = useState("");
-  const [currentuser, setCurrentUser] = useState(null); 
+  const [currentuser, setCurrentUser] = useState(null);
+  const [userName, setUsername]=useState("");
+  const [userDataFetched, setUserDataFetched] = useState(false);
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, user => {
       if (user) {
@@ -107,14 +110,29 @@ const handleLogin = (user) => {
 
 handleLogin(currentuser);
   const getuserId = localStorage.getItem('userId');
-  const userId = getuserId;
-  getUserData(userId).then(userData => {
-    if (userData) {
-      localStorage.setItem('name', userData.Name);
-    } else {
-      console.log("User data not found!");
+  
+
+  const getUserDataOnce = (userId) => {
+    if (!userDataFetched) {
+        getUserData(userId).then(userData => {
+            if (userData) {
+                setUsername(userData);
+                localStorage.setItem('name', userData.Name);
+                setUserDataFetched(true); // Set to true after fetching once
+            } else {
+                console.log("User data not found!");
+            }
+        });
     }
-  });
+};
+
+useEffect(() => {
+  if (currentuser) {
+      const userId = localStorage.getItem('userId');
+      getUserDataOnce(userId);
+  }
+}, [currentuser]);
+
 
 
     const handleLogout = async () => {
@@ -122,8 +140,7 @@ handleLogin(currentuser);
             await signOut(auth);
             localStorage.removeItem('userId');
             localStorage.removeItem('name');
-            localStorage.setItem('userId', false);
-            localStorage.setItem('name', false);
+            setUserDataFetched("");
         } catch (error) {
             console.error('Error signing out:', error.message);
         }
@@ -131,6 +148,7 @@ handleLogin(currentuser);
 
 
   const value = {
+    userName,
     handleLogout,
     SignIn,
     SignUp,
